@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        ul,li {
+            list-style: none;
+        }
+        #container {
+            width: 960px;
+            border: 1px solid #ccc;
+            margin: 20px auto;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .mind {
+            width: 50%;
+            margin-left: 20px;
+            float: left;
+        }
+        #cas {
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 2px 3px 6px 0px #999;
+        }
+        .info {
+            width: 350px;
+            margin-top: 20px;
+            float: right;
+           position: relative;
+        }
+        .info li {
+            margin: 20px 0;
+        }
+        .info label input[type="text"]{
+            width: 44px;
+        }
+        .submit {
+            position: absolute;
+            right: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            -webkit-transform: translateY(-50%);
+
+        }
+    </style>
+</head>
+<body>
+<div id="container">
+    <div class="mind">
+        <canvas id="cas"></canvas>
+    </div>
+    <div class="info">
+        <ul>
+            <li>
+                <p>职称</p>
+                <input type="text" maxlength="6" id="js_job">
+            </li>
+            <li>
+                <p>领证人</p>
+                <input type="text" maxlength="4" id="js_name">
+            </li>
+            <li>
+                <label >性别:
+                    <select name=""  id="js_sex">
+                        <option value="男">男</option>
+                        <option value="女">女</option>
+                    </select>
+                </label>
+                <label >年龄:
+                    <input type="text" maxlength="4" id="js_age">
+                </label>
+            </li>
+            <li>
+                <p>头像传(可选)</p>
+                <input type="file" id="js_avatar">
+            </li>
+        </ul>
+        <div class="submit js_submit">
+            <input type="button" value="一键生成证书" title="请补充信息" id="btn">
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    //获取信息
+    var info = ['姓名: ','性别: ','年龄: '];
+    var dataInfos = ['孤鸿号','男','24'];
+    var rank = ['摆渡人'];
+    var srcImg = './images/avatar.jpg';
+    var arr = [];
+    var  textLine;
+
+    var btn = document.getElementById('btn');
+    var js_job = document.getElementById('js_job');
+    var js_name = document.getElementById('js_name');
+    var js_sex = document.getElementById('js_sex');
+    var js_age = document.getElementById('js_age');
+    var js_avatar = document.getElementById('js_avatar');
+
+    //注册一个选择文件内容改变时的事件
+    js_avatar.onchange = function () {
+        //获取内容改变时的信息
+        var f = this.files[0];
+
+        //生成一个信息读取器
+        var reader = new FileReader();
+
+        //把 自己需要的信息 通过读取器 读取出来
+        reader.readAsDataURL(f);
+
+        //在信息读取完毕之后，把信息在盒子中显示出来
+        reader.onload = function () {
+            srcImg = reader.result;
+        }
+    };
+    btn.onclick = function () {
+        arr = [js_name.value,js_sex.value,js_age.value];
+        rank = [js_job.value];
+        arr.forEach(function (v,i) {
+            dataInfos[i] = v;
+        });
+        if(js_name.value == "" || js_sex.value == "" || js_age.value == "" || rank == "" ) {
+            alert("信息不能为空");
+            return
+        }
+        if(srcImg == './images/avatar.jpg') {
+            alert('请添加图片');
+            return
+        }
+        console.log(srcImg);
+        create();
+       //生成之后清空填写的内容
+        js_name.value = '';
+        js_age.value = '';
+        js_job.value = '';
+    };
+    create();
+   function create() {
+       var cas = document.getElementById("cas");
+       var container = document.getElementById("container");
+       var ctx = cas.getContext("2d");
+       //设置画布的宽高
+       cas.width = 460;
+       cas.height = 280;
+
+       var x0 = cas.width / 2,
+               y0 = cas.height ;
+       var g = ctx.createRadialGradient( x0 / 2, y0 / 2, 5, x0 / 2 + 10, y0 / 2 + 10, 200 );
+       g.addColorStop( 0, 'rgb(58,207,0)' );
+       g.addColorStop( 1, 'rgb(42,144,1)' );
+       ctx.fillStyle = g;
+       //绘制整个背景
+       var x = 0,
+               y = 0,
+               width = cas.width,
+               height = y0,
+               r = 10;
+       ctx.moveTo(x -r ,y );
+       ctx.arcTo(x + width , y  , x + width, y +  r, r);
+       ctx.arcTo(x + width ,y+height+r,x + width, y + height + r, r);
+       ctx.arcTo(x - 2 * r, y + height + r, x - 2 * r, y + r,r);
+       ctx.arcTo(x - 2 * r,y , x , y, r);
+       ctx.fill();
+
+       //添加图片
+       var img = new Image();
+       img.src = './images/logo.png';
+       img.onload = function () {
+           ctx.drawImage(img,0,0,207,56,(width / 2 - 207) / 2,40,207,56);
+       };
+
+       ctx.beginPath();
+       ctx.font = '30px Consolas';
+       ctx.fillStyle = 'white';
+       textLine = ctx.measureText( rank[ 0 ] ).width;
+       ctx.fillText(rank[0],(width / 2 -textLine) / 2, cas.height - 60);
+
+       //绘制中间的白线
+       ctx.beginPath();
+       ctx.moveTo(cas.width / 2,0);
+       ctx.lineTo(cas.width / 2, cas.height);
+       ctx.setLineDash([5,2]);
+       ctx.strokeStyle = 'white';
+       ctx.stroke();
+
+       //绘制右边背景
+       var x1 = cas.width / 2 + 20,
+               y1 = 10,
+               width1 = cas.width / 2 - 40,
+               height1 = cas.height - 30,
+               r1 = 10;
+       ctx.moveTo(x1 + r1  ,y1 );
+       ctx.arcTo(x1 + width1 + r1 , y1  , x1 + width1 + r, y1 +  r1, r1);
+       ctx.arcTo(x1 + width1 + r1 ,y1 + height1 +r1,x1 + width1, y1 + height1 + r1, r1);
+       ctx.arcTo(x1 - r1, y1 + height1 + r1, x1 - r1, y1 + r1,r1);
+       ctx.arcTo(x1 - r1,y1 , x1 , y1, r1);
+       ctx.fillStyle = 'white';
+       ctx.fill();
+
+       //绘制右边的文字
+       ctx.beginPath();
+       ctx.font = '16px 黑体';
+       ctx.fillStyle = 'black';
+       info.forEach(function (v,i) {
+           ctx.fillText(v + dataInfos[i],x1,60 + i * 25);
+
+           ctx.fill();
+       });
+
+       //绘制右边头像文件
+       ctx.beginPath();
+       var img1 = new Image();
+       img1.src = srcImg;
+       img1.onload = function () {
+           var imgWidth = img1.width;
+           var imgHeight = img1.height;
+           ctx.drawImage(img1,0,0,imgWidth,imgHeight,cas.width - 100 ,30,80,100);
+       };
+
+       //绘制右边右下角的文字
+       ctx.beginPath();
+       ctx.font = '16px 黑体';
+       ctx.fillStyle = 'black';
+       var date = new Date().toLocaleDateString();
+       var random = Math.floor(Math.random()* 1000000000);
+       ctx.fillText("颁发日期: " + date,cas.width - 175,cas.height - 60);
+       ctx.fillText("证书编号: " + random,cas.width - 175,cas.height - 35);
+       ctx.fill();
+
+       //绘制盖章
+       ctx.beginPath();
+       var img2 = new Image();
+       img2.src = './images/company.gif';
+       img2.onload = function () {
+           ctx.drawImage(img2,0,0,397,392,cas.width - 150 ,cas.height - 130,120,110);
+       };
+   }
+
+</script>
+</html>
